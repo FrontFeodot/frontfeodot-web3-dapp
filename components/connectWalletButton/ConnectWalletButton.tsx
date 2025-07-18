@@ -2,7 +2,7 @@
 
 import Button from '@mui/material/Button';
 import useWalletConnection from './hooks/useWalletConnection';
-import { Menu, MenuItem, Typography } from '@mui/material';
+import { FormControl, Menu, MenuItem, Typography } from '@mui/material';
 import { useState } from 'react';
 
 export default function ConnectWalletButton() {
@@ -30,7 +30,7 @@ export default function ConnectWalletButton() {
   };
 
   return (
-    <>
+    <FormControl fullWidth>
       <Button
         id="profile-button"
         aria-controls={open ? 'basic-menu' : undefined}
@@ -38,7 +38,6 @@ export default function ConnectWalletButton() {
         aria-expanded={open ? 'true' : undefined}
         onClick={handleMenuClick}
         sx={{ padding: '8px' }}
-        color="inherit"
         size="medium"
         variant="contained"
       >
@@ -61,9 +60,15 @@ export default function ConnectWalletButton() {
         anchorEl={anchorEl}
       >
         {hasConnection ? (
-          <MenuItem onClick={handleDisconnectClick}>Disconnect</MenuItem>
+          <MenuItem
+            aria-labelledby="profile-button"
+            sx={{ width: anchorEl && anchorEl.offsetWidth }}
+            onClick={handleDisconnectClick}
+          >
+            Disconnect
+          </MenuItem>
         ) : null}
       </Menu>
-    </>
+    </FormControl>
   );
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import AppThemeProvider from '@/styles/theme';
-import NavBar from '@/components/nav/NavBar';
+import Header from '@/components/nav/Header';
 import ReduxProvider from '@/store/provider';
 
 export const metadata: Metadata = {
@@ -16,14 +16,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-        <body>
+      <body>
         <AppThemeProvider>
           <ReduxProvider>
-            <NavBar />
+            <Header />
             {children}
           </ReduxProvider>
-    </AppThemeProvider>
-        </body>
-      </html>
+        </AppThemeProvider>
+      </body>
+    </html>
   );
 }

@@ -1,46 +1,40 @@
 'use client';
 
-import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Link from 'next/link';
-import { Container } from '@mui/material';
-import ConnectWalletButton from '../connectWalletButton/ConnectWalletButton';
 import { NAV_ROUTES } from '@/lib/constants';
+import { Toolbar, Typography } from '@mui/material';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
-export default function NavBar() {
+const NavBar = () => {
+  const pathname = usePathname();
+  const isSelected = (path: string) => pathname === path;
+
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static" sx={{ display: 'flex', flexDirection: 'row' }}>
-        <Toolbar
+    <Toolbar
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 4,
+        flexGrow: 1,
+        marginLeft: '200px',
+      }}
+    >
+      {NAV_ROUTES.map((route) => (
+        <Typography
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 4,
-            flexGrow: 1,
-            marginLeft: '200px',
+            borderBottom: `2px solid ${isSelected(route.href) ? '#239A3B' : 'transparent'}`,
           }}
+          variant="h6"
+          component="div"
+          key={route.name}
+          color={`${isSelected(route.href) ? 'primary' : 'inherit'}`}
         >
-          {NAV_ROUTES.map((route) => (
-            <Typography variant="h6" component="div" key={route.name}>
-              <Link href={route.href}>{route.name}</Link>
-            </Typography>
-          ))}
-        </Toolbar>
-        <Container
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '200px',
-          }}
-        >
-          <ConnectWalletButton />
-        </Container>
-      </AppBar>
-    </Box>
+          <Link href={route.href}>{route.name}</Link>
+        </Typography>
+      ))}
+    </Toolbar>
   );
-}
+};
+
+export default NavBar;

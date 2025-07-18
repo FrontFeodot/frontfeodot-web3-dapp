@@ -1,7 +1,7 @@
-import TransferTokens from '@/components/transfer/TokensTransfer';
-import { Box } from '@mui/material';
+import RugWhale from '@/components/transfer/WhaleRug';
+import { Box, Typography } from '@mui/material';
 
-const Transfer = () => {
+const GetTokens = () => {
   return (
     <Box
       sx={{
@@ -27,10 +27,16 @@ const Transfer = () => {
           backgroundColor: 'background.paper',
         }}
       >
-        <TransferTokens />
+        <Typography variant="h4">
+          If you use hardhat fork, you can get tokens from whale
+        </Typography>
+        <Typography variant="h6">
+          * Balance will changed after page update
+        </Typography>
+        <RugWhale />
       </Box>
     </Box>
   );
 };
 
-export default Transfer;
+export default GetTokens;

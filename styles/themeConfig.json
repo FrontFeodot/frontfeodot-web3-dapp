@@ -1,0 +1,72 @@
+{
+  "palette": {
+    "mode": "dark",
+    "primary": {
+      "main": "#239A3B",
+      "dark": "#1B7A31",
+      "contrastText": "#FFFFFF"
+    },
+    "secondary": {
+      "main": "#5A9E76",
+      "dark": "#4A8261",
+      "contrastText": "#FFFFFF"
+    },
+    "error": {
+      "main": "#C0392B",
+      "contrastText": "#FFFFFF"
+    },
+    "warning": {
+      "main": "#B9770E",
+      "contrastText": "#000000"
+    },
+    "info": {
+      "main": "#2E86C1",
+      "contrastText": "#FFFFFF"
+    },
+    "success": {
+      "main": "#229954",
+      "contrastText": "#FFFFFF"
+    },
+    "background": {
+      "default": "#161616",
+      "paper": "#282828"
+    },
+    "text": {
+      "primary": "#E0E0E0",
+      "secondary": "#A3A3A3",
+      "disabled": "#555555"
+    },
+    "tonalOffset": 0.2
+  },
+  "components": {
+    "MuiButton": {
+      "styleOverrides": {
+        "root": {
+          "borderRadius": 8,
+          "textTransform": "none",
+          "padding": "8px 24px",
+          "transition": "background-color 200ms ease, transform 150ms ease",
+          "&:hover": {
+            "backgroundColor": "#1B7A31",
+            "transform": "translateY(-1px)"
+          }
+        }
+      }
+    },
+    "MuiAppBar": {
+      "styleOverrides": {
+        "colorPrimary": {
+          "backgroundColor": "#1F1F1F"
+        }
+      }
+    },
+    "MuiTooltip": {
+      "styleOverrides": {
+        "tooltip": {
+          "backgroundColor": "#1B2B1E",
+          "fontSize": "0.875rem"
+        }
+      }
+    }
+  }
+}

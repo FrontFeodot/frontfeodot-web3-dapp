@@ -1,15 +1,16 @@
-import { getEthersProvider } from '@/store/ethersProvider/ethersProvider';
+import { getBrowserProvider } from '@/store/ethersProvider/ethersProvider';
 
-export const connectWallet = async () => {
+export const connectWallet = async (connectedAccount?: string) => {
   if (window.ethereum) {
     try {
-      const provider = getEthersProvider();
+      const provider = getBrowserProvider();
       if (!provider) throw new Error('provider is not initialized');
 
-      const accounts = await provider.send('eth_requestAccounts', []);
+      const account =
+        connectedAccount || (await provider.send('eth_requestAccounts', []))[0];
       const network = await provider.getNetwork();
-      console.log('accounts', accounts);
-      return { address: accounts[0], chainId: Number(network.chainId) };
+
+      return { address: account, chainId: Number(network.chainId) };
     } catch (error) {
       console.log(error);
     }
@@ -19,9 +20,14 @@ export const connectWallet = async () => {
 };
 
 export const disconnectWallet = async () => {
-  const response = await window.ethereum.request({
-    method: 'wallet_revokePermissions',
-    params: [{ eth_accounts: {} }],
-  });
-  console.log(response);
+  if (window.ethereum) {
+    try {
+      await window.ethereum.request({
+        method: 'wallet_revokePermissions',
+        params: [{ eth_accounts: {} }],
+      });
+    } catch (error) {
+      console.error('Error disconnecting wallet:', error);
+    }
+  }
 };

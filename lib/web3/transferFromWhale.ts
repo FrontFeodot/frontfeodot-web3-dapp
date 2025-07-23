@@ -39,29 +39,29 @@ export const transferFromWhale = async (
     const signer = new JsonRpcSigner(rpcProvider, whalePublic);
     if (!signer) throw new Error('signer is not initialized');
 
-    const USDC_contract = new ethers.Contract(ERC20_Address, ERC20_ABI, signer);
+    const ERC_20_Contract = new ethers.Contract(ERC20_Address, ERC20_ABI, signer);
 
-    const balanceUSDC = await USDC_contract.balanceOf(whalePublic);
+    const ERC_20_Token_balance = await ERC_20_Contract.balanceOf(whalePublic);
 
     const balanceETH = await rpcProvider.getBalance(whalePublic);
-    console.log('balanceUSDC balanceETH', balanceUSDC, balanceETH);
+    console.log('ERC_20_Balance balanceETH', ERC_20_Token_balance, balanceETH);
 
-    const decimals = await USDC_contract.decimals();
+    const decimals = await ERC_20_Contract.decimals();
     const parsedAmount = ethers.parseUnits(amount, decimals);
-    console.log('amount, balance', parsedAmount, balanceUSDC);
+    console.log('amount, balance', parsedAmount, ERC_20_Token_balance);
 
-    const tx = await USDC_contract.transfer(address, parsedAmount);
+    const tx = await ERC_20_Contract.transfer(address, parsedAmount);
 
     console.log(tx);
     const receipt = await tx.wait();
 
     console.log('receipt', receipt);
 
-    const newWhaleBalance = await USDC_contract.balanceOf(whalePublic);
+    const newWhaleBalance = await ERC_20_Contract.balanceOf(whalePublic);
     if (!newWhaleBalance)
       throw new Error('newWhaleBalance balance is not initialized');
 
-    const newUserBalance = await USDC_contract.balanceOf(address);
+    const newUserBalance = await ERC_20_Contract.balanceOf(address);
     if (!newUserBalance)
       throw new Error('newUserBalance balance is not initialized');
 

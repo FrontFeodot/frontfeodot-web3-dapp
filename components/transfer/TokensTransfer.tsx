@@ -7,15 +7,16 @@ import {
   TextFieldProps,
   Typography,
 } from '@mui/material';
-import { useActionState, useState } from 'react';
+import { useActionState, useRef, useState } from 'react';
 import SelectToken from './SelectToken';
 import FormError from '../common/FormError';
 import { FormValues, TransferActionState } from './types';
-import { handleTransferSubmit } from './utils';
+import { handleTransferSubmit } from './formActions';
+import { RefetchBalance } from '@/lib/web3/types';
 
 const TransferTokens = () => {
+  const refetchRef = useRef<RefetchBalance | null>(null);
   const [tokenName, setTokenName] = useState('ETH');
-  const [balance, setBalance] = useState('');
   const [success, setSuccess] = useState(false);
 
   const [formState, formAction, isPending] = useActionState<
@@ -27,8 +28,8 @@ const TransferTokens = () => {
         prevState,
         formData,
         tokenName,
-        setBalance,
-        setSuccess
+        setSuccess,
+        refetchRef.current
       ),
     {
       receiver: '',
@@ -78,10 +79,9 @@ const TransferTokens = () => {
         </Box>
 
         <SelectToken
-          balance={balance}
-          setBalance={setBalance}
           tokenName={tokenName}
           setTokenName={setTokenName}
+          refetchRef={refetchRef}
         />
 
         <FormError message={formState?.errors?.global} />

@@ -1,8 +1,6 @@
 'use client';
 
 import { TOKEN_ADDRESS_LIST } from '@/lib/constants';
-import { getBalance } from '@/lib/web3/balance';
-import { useAppSelector } from '@/store/hooks';
 import {
   Box,
   FormControl,
@@ -14,27 +12,29 @@ import {
 } from '@mui/material';
 import { useEffect } from 'react';
 import { SelectTokenProps } from './types';
+import { useAccount, useBalance } from 'wagmi';
+import { formatUnits } from 'viem';
 
 const SelectToken = ({
-  balance,
-  setBalance,
   tokenName,
   setTokenName,
+  refetchRef,
 }: SelectTokenProps) => {
-  const address = useAppSelector((state) => state.wallet.address);
+  const { address } = useAccount();
+  const { data: accountBalance, refetch } = useBalance({
+    address,
+    ...(tokenName !== 'ETH' ? { token: TOKEN_ADDRESS_LIST[tokenName] } : {}),
+  });
 
   useEffect(() => {
-    if (tokenName) {
-      updateBalance(tokenName);
+    if (!!refetch && refetchRef) {
+      refetchRef.current = refetch;
     }
-  }, [address, tokenName]);
+  }, [refetch, refetchRef]);
 
-  const updateBalance = async (tokenName: string) => {
-    const balance = await getBalance(tokenName);
-    if (balance) {
-      setBalance(balance);
-    }
-  };
+  const balance = accountBalance
+    ? formatUnits(accountBalance?.value, accountBalance?.decimals)
+    : 0;
 
   const handleSelectChange = (event: SelectChangeEvent<string>) => {
     setTokenName(event.target.value);

@@ -1,100 +1,114 @@
-import { ethers, JsonRpcSigner } from 'ethers';
-import { ERC20_ABI, TOKEN_ADDRESS_LIST } from '../constants';
-import { getJsonRpcProvider } from '@/store/ethersProvider/ethersProvider';
+import {
+  createPublicClient,
+  createWalletClient,
+  formatUnits,
+  http,
+  parseUnits,
+} from 'viem';
+import { erc20Abi } from 'viem';
+import type { Address } from 'viem';
+import { hardhatFork } from './wagmiConfig';
+import { TOKEN_ADDRESS_LIST, TokenName } from '../constants';
 
-export const transferFromWhale = async (
-  address: string,
-  amount: string,
-  tokenName: keyof typeof TOKEN_ADDRESS_LIST,
-  addressTo: string
-) => {
-  const provider = getJsonRpcProvider();
-  if (!provider) throw new Error('provider is not initialized');
-  const defaultWhalePublic =
-    tokenName === 'ETH'
-      ? '0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199'
-      : '0x0B0A5886664376F59C351ba3f598C8A8B4D0A6f3';
+// List of token addresses for your testnet
 
-  const whalePublic = addressTo || defaultWhalePublic;
-  console.log(whalePublic);
-  if (tokenName !== 'ETH') {
-    const ERC20_Address = TOKEN_ADDRESS_LIST[tokenName];
+interface TransferParams {
+  to: Address;
+  amount: string; // human-readable amount, e.g. '1.5'
+  token: TokenName;
+  whale?: string; // optional override
+}
 
-    const rpcProvider = new ethers.JsonRpcProvider(
-      process.env.NEXT_PUBLIC_RPC_URL
-    );
-    console.log('rpcProvider', rpcProvider);
+// RPC URL for your Hardhat fork
+const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'http://127.0.0.1:8545';
 
-    const impersonateResult = await rpcProvider.send(
-      'hardhat_impersonateAccount',
-      [whalePublic]
-    );
+// Initialize a viem public client for arbitrary JSON-RPC
+const publicClient = createPublicClient({
+  chain: hardhatFork,
+  transport: http(RPC_URL),
+});
 
-    await rpcProvider.send('hardhat_setBalance', [
-      whalePublic,
-      '0x56BC75E2D63100000',
-    ]);
-    console.log('impersonateResult', impersonateResult);
+// Factory to create an impersonated wallet client
+const createWhaleClient = (address: Address) =>
+  createWalletClient({
+    chain: hardhatFork,
+    transport: http(RPC_URL),
+    account: address,
+  });
 
-    const signer = new JsonRpcSigner(rpcProvider, whalePublic);
-    if (!signer) throw new Error('signer is not initialized');
+/**
+ * Transfers tokens or ETH from a whale (impersonated) to a recipient in Hardhat fork.
+ */
+export async function transferFromWhale({
+  to,
+  amount,
+  token,
+  whale,
+}: TransferParams) {
+  const isNative = token === 'ETH';
+  // Default whale addresses for ETH or ERC20
+  const defaultWhale = isNative
+    ? '0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199'
+    : '0x0B0A5886664376F59C351ba3f598C8A8B4D0A6f3';
+  const whaleAddress = (whale || defaultWhale) as Address;
 
-    const ERC_20_Contract = new ethers.Contract(ERC20_Address, ERC20_ABI, signer);
+  // Impersonate the whale
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (publicClient as any).request({
+    method: 'hardhat_impersonateAccount',
+    params: [whaleAddress],
+  });
 
-    const ERC_20_Token_balance = await ERC_20_Contract.balanceOf(whalePublic);
+  // Add ETH for gas
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (publicClient as any).request({
+    method: 'hardhat_setBalance',
+    params: [whaleAddress, '0x56BC75E2D63100000'],
+  });
 
-    const balanceETH = await rpcProvider.getBalance(whalePublic);
-    console.log('ERC_20_Balance balanceETH', ERC_20_Token_balance, balanceETH);
+  const whaleWalletClient = createWhaleClient(whaleAddress);
 
-    const decimals = await ERC_20_Contract.decimals();
-    const parsedAmount = ethers.parseUnits(amount, decimals);
-    console.log('amount, balance', parsedAmount, ERC_20_Token_balance);
-
-    const tx = await ERC_20_Contract.transfer(address, parsedAmount);
-
-    console.log(tx);
-    const receipt = await tx.wait();
-
-    console.log('receipt', receipt);
-
-    const newWhaleBalance = await ERC_20_Contract.balanceOf(whalePublic);
-    if (!newWhaleBalance)
-      throw new Error('newWhaleBalance balance is not initialized');
-
-    const newUserBalance = await ERC_20_Contract.balanceOf(address);
-    if (!newUserBalance)
-      throw new Error('newUserBalance balance is not initialized');
-
-    console.log(`whale balacne after rug: ${newWhaleBalance}`);
-    console.log(`user balance after rug: ${newUserBalance}`);
-    return;
-  } else {
-    const rpcProvider = new ethers.JsonRpcProvider(
-      process.env.NEXT_PUBLIC_RPC_URL
-    );
-    const signer = new JsonRpcSigner(rpcProvider, whalePublic);
-
-    const whaleBalance = await provider.getBalance(whalePublic); // getWalletBalance(whalePublic);
-    if (!whaleBalance) throw new Error('whale balance is not initialized');
-    console.log(`whale balacne before rug: ${whaleBalance}`);
-
-    const tx = await signer.sendTransaction({
-      to: address,
-      value: ethers.parseUnits(amount, 18),
+  if (!isNative) {
+    // ERC20 transfer
+    const tokenAddress = TOKEN_ADDRESS_LIST[token];
+    // Read decimals
+    const decimals = await publicClient.readContract({
+      address: tokenAddress as Address,
+      abi: erc20Abi,
+      functionName: 'decimals',
     });
+    const value = parseUnits(amount, decimals);
 
-    console.log('tx', tx);
-    const receipt = await tx.wait();
-    console.log('receipt', receipt);
-    const newWhaleBalance = await provider.getBalance(whalePublic); //  getWalletBalance(whalePublic);
-    if (!newWhaleBalance)
-      throw new Error('newWhaleBalance balance is not initialized');
+    const tokenBalance = await publicClient.readContract({
+      address: tokenAddress as Address,
+      abi: erc20Abi,
+      functionName: 'balanceOf',
+      args: [whaleAddress],
+    });
+    console.log(`Whale ${token} balance:`, formatUnits(tokenBalance, decimals));
 
-    const newUserBalance = await provider.getBalance(address);
-    if (!newUserBalance)
-      throw new Error('newUserBalance balance is not initialized');
+    console.log(
+      `Transferring ${amount} ${token} from ${whaleAddress} to ${to}`
+    );
+    // Execute transfer
+    const hash = await whaleWalletClient.writeContract({
+      address: tokenAddress as Address,
+      abi: erc20Abi,
+      functionName: 'transfer',
+      args: [to, value],
+    });
+    // Wait for receipt
+    await publicClient.waitForTransactionReceipt({ hash });
+    console.log(`Transfered ${amount} ${token} from ${whaleAddress} to ${to}`);
+  } else {
+    // Native ETH transfer
+    const value = parseUnits(amount, 18);
 
-    console.log(`whale balacne after rug: ${newWhaleBalance}`);
-    console.log(`user balance after rug: ${newUserBalance}`);
+    const hash = await whaleWalletClient.sendTransaction({
+      to,
+      value,
+    });
+    await publicClient.waitForTransactionReceipt({ hash });
+    console.log(`Transfered ${amount} ETH from ${whaleAddress} to ${to}`);
   }
-};
+}

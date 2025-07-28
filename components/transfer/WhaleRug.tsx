@@ -2,22 +2,30 @@
 
 import { transferFromWhale } from '@/lib/web3/transferFromWhale';
 import { Box, Button, Divider, TextField, Typography } from '@mui/material';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import SelectToken from './SelectToken';
-import { useAppSelector } from '@/store/hooks';
+import { useAccount } from 'wagmi';
+import { TokenName } from '@/lib/constants';
+import { RefetchBalance } from '@/lib/web3/types';
 
 const RugWhale = () => {
-  const [balance, setBalance] = useState('');
-  const [tokenName, setTokenName] = useState('ETH');
-  const [addressTo, setAddressTo] = useState('');
+  const refetchRef = useRef<RefetchBalance | null>(null);
+  const [tokenName, setTokenName] = useState<TokenName>('ETH');
+  const [whaleAddress, setWhaleAddress] = useState('');
   const [amount, setAmount] = useState('');
-  const address = useAppSelector((state) => state.wallet.address);
-
-  if (!address) return null;
+  const { address } = useAccount();
 
   const handleClick = async () => {
     if (!address) return;
-    await transferFromWhale(address, amount, tokenName, addressTo);
+    await transferFromWhale({
+      to: address,
+      amount,
+      token: tokenName,
+      whale: whaleAddress,
+    });
+    if (refetchRef.current) {
+      refetchRef.current();
+    }
   };
   return (
     <Box
@@ -33,9 +41,9 @@ const RugWhale = () => {
       <TextField
         fullWidth
         variant="outlined"
-        value={addressTo}
+        value={whaleAddress}
         onChange={(e) => {
-          setAddressTo(e.target.value);
+          setWhaleAddress(e.target.value);
         }}
       />
       <Typography variant="h6">Amount</Typography>
@@ -50,10 +58,9 @@ const RugWhale = () => {
         }}
       />
       <SelectToken
-        balance={balance}
-        setBalance={setBalance}
         tokenName={tokenName}
         setTokenName={setTokenName}
+        refetchRef={refetchRef}
       />
       <Button variant="contained" onClick={handleClick}>
         Rug whale

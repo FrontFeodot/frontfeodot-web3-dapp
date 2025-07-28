@@ -1,7 +1,7 @@
 import { transferToWallet } from '@/lib/web3/transfer';
 import { FormErrorValues, FormValues, TransferActionState } from './types';
-import { getBalance } from '@/lib/web3/balance';
 import { Dispatch, SetStateAction } from 'react';
+import { RefetchBalance } from '@/lib/web3/types';
 
 const validate = ({ amount, receiver }: FormValues): FormErrorValues => {
   const newErrors: { amount?: string; receiver?: string } = {};
@@ -18,12 +18,11 @@ export const handleTransferSubmit = async (
   prevState: TransferActionState,
   formData: FormData,
   tokenName: string,
-  setBalance: Dispatch<SetStateAction<string>>,
-  setSuccess: Dispatch<SetStateAction<boolean>>
+  setSuccess: Dispatch<SetStateAction<boolean>>,
+  refetcFunc?: RefetchBalance | null
 ): Promise<TransferActionState> => {
   const receiver = String(formData.get('receiver') ?? '').trim();
   const amount = String(formData.get('amount') ?? '').trim();
-  console.log('handleTransferSubmit', receiver, amount);
   const validationErrors: FormErrorValues = validate({ amount, receiver });
 
   if (Object.keys(validationErrors).length) {
@@ -31,9 +30,6 @@ export const handleTransferSubmit = async (
   } else {
     const response = await transferToWallet(receiver, amount, tokenName);
     if (response instanceof Error) {
-      console.log(
-        (response as unknown as { message: string; code: string | number }).code
-      );
       return {
         ...prevState,
         receiver,
@@ -41,8 +37,9 @@ export const handleTransferSubmit = async (
         errors: { global: response.message },
       };
     }
-    const newBalance = await getBalance(tokenName);
-    setBalance(newBalance);
+    if (refetcFunc) {
+      refetcFunc();
+    }
     setSuccess(true);
     setTimeout(() => setSuccess(false), 5000);
     return { ...prevState, errors: null };

@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { RootState } from '../index';
-import { BrowserProvider } from 'ethers';
 
 export interface WalletState {
   address: string | null;

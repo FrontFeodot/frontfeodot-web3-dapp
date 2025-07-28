@@ -1,23 +1,24 @@
 'use client';
 
 import Button from '@mui/material/Button';
-import useWalletConnection from './hooks/useWalletConnection';
 import { FormControl, Menu, MenuItem, Typography } from '@mui/material';
 import { useState } from 'react';
+import { injected, useAccount, useConnect, useDisconnect } from 'wagmi';
 
-export default function ConnectWalletButton() {
+const ConnectWalletButton = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { address, isConnected, handleConnect, handleDisconnect } =
-    useWalletConnection();
+
+  const { connect } = useConnect();
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
 
   const open = Boolean(anchorEl);
-  const hasConnection = isConnected && address;
 
   const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (hasConnection) {
+    if (isConnected) {
       return setAnchorEl(event.currentTarget);
     }
-    handleConnect();
+    connect({ connector: injected() });
   };
 
   const handleMenuClose = () => {
@@ -25,7 +26,7 @@ export default function ConnectWalletButton() {
   };
 
   const handleDisconnectClick = () => {
-    handleDisconnect();
+    disconnect();
     handleMenuClose();
   };
 
@@ -49,7 +50,7 @@ export default function ConnectWalletButton() {
           }}
           variant="button"
         >
-          {hasConnection ? address : 'Connect Wallet'}
+          {isConnected ? address : 'Connect Wallet'}
         </Typography>
       </Button>
       <Menu
@@ -59,7 +60,7 @@ export default function ConnectWalletButton() {
         onClose={handleMenuClose}
         anchorEl={anchorEl}
       >
-        {hasConnection ? (
+        {isConnected ? (
           <MenuItem
             aria-labelledby="profile-button"
             sx={{ width: anchorEl && anchorEl.offsetWidth }}
@@ -71,4 +72,6 @@ export default function ConnectWalletButton() {
       </Menu>
     </FormControl>
   );
-}
+};
+
+export default ConnectWalletButton;

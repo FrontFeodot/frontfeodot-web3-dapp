@@ -1,3 +1,7 @@
+import { TokenName } from '@/lib/constants';
+import { RefetchBalance } from '@/lib/web3/types';
+import { RefObject } from 'react';
+
 export interface FormValues extends Partial<FormData> {
   receiver: string;
   amount: string;
@@ -12,8 +16,7 @@ export interface TransferActionState extends FormValues {
 }
 
 export interface SelectTokenProps {
-  balance: string;
-  setBalance: (balance: string) => void;
   tokenName: string;
-  setTokenName: (tokenName: string) => void;
+  setTokenName: (tokenName: TokenName) => void;
+  refetchRef: RefObject<RefetchBalance | null>;
 }

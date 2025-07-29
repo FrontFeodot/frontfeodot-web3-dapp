@@ -2,43 +2,34 @@
   "palette": {
     "mode": "dark",
     "primary": {
-      "main": "#239A3B",
-      "dark": "#1B7A31",
+      "main": "#FF6F00",
+      "dark": "#E65A00",
       "contrastText": "#FFFFFF"
     },
     "secondary": {
-      "main": "#5A9E76",
-      "dark": "#4A8261",
-      "contrastText": "#FFFFFF"
-    },
-    "error": {
-      "main": "#C0392B",
-      "contrastText": "#FFFFFF"
-    },
-    "warning": {
-      "main": "#B9770E",
-      "contrastText": "#000000"
-    },
-    "info": {
-      "main": "#2E86C1",
-      "contrastText": "#FFFFFF"
-    },
-    "success": {
-      "main": "#229954",
+      "main": "#FFA040",
+      "dark": "#CC8333",
       "contrastText": "#FFFFFF"
     },
     "background": {
-      "default": "#161616",
-      "paper": "#282828"
+      "default": "linear-gradient(135deg, #2C003E 0%, #190023 70%, #FF6F00 110%)",
+      "paper": "#1F1F1F"
     },
     "text": {
-      "primary": "#E0E0E0",
-      "secondary": "#A3A3A3",
-      "disabled": "#555555"
+      "primary": "#F0EDE5",
+      "secondary": "#C3BDB5",
+      "disabled": "#767270"
     },
     "tonalOffset": 0.2
   },
   "components": {
+    "MuiCssBaseline": {
+      "styleOverrides": {
+        "body": {
+          "background": "linear-gradient(135deg, #190023 0%, #2c003e 70%, #FF6F00 110%)"
+        }
+      }
+    },
     "MuiButton": {
       "styleOverrides": {
         "root": {
@@ -47,7 +38,7 @@
           "padding": "8px 24px",
           "transition": "background-color 200ms ease, transform 150ms ease",
           "&:hover": {
-            "backgroundColor": "#1B7A31",
+            "backgroundColor": "#E65A00",
             "transform": "translateY(-1px)"
           }
         }
@@ -63,7 +54,7 @@
     "MuiTooltip": {
       "styleOverrides": {
         "tooltip": {
-          "backgroundColor": "#1B2B1E",
+          "backgroundColor": "#33221A",
           "fontSize": "0.875rem"
         }
       }

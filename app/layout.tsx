@@ -7,6 +7,7 @@ import { cookieToInitialState } from 'wagmi';
 import { getWagmiConfig } from '@/lib/web3/wagmiConfig';
 import { headers } from 'next/headers';
 import WagmiProvider from '@/store/wagmiProvider/WagmiProvider';
+import { Box } from '@mui/material';
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -29,7 +30,17 @@ export default async function RootLayout({
           <WagmiProvider initialState={initialState}>
             <ReduxProvider>
               <Header />
-              {children}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignContent: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                }}
+              >
+                {children}
+              </Box>
             </ReduxProvider>
           </WagmiProvider>
         </AppThemeProvider>

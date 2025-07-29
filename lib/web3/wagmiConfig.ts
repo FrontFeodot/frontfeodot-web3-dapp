@@ -1,5 +1,6 @@
 import { http, createConfig, createStorage, cookieStorage } from 'wagmi';
 import { defineChain } from 'viem';
+import { RPC_URL } from '../constants';
 
 // only for development fork
 export const hardhatFork = defineChain({
@@ -12,10 +13,10 @@ export const hardhatFork = defineChain({
   },
   rpcUrls: {
     default: {
-      http: ['http://127.0.0.1:8545'],
+      http: [RPC_URL],
     },
     public: {
-      http: ['http://127.0.0.1:8545'],
+      http: [RPC_URL],
     },
   },
 });
@@ -27,7 +28,7 @@ const config = createConfig({
     storage: cookieStorage,
   }),
   transports: {
-    [hardhatFork.id]: http('http://127.0.0.1:8545'),
+    [hardhatFork.id]: http(RPC_URL),
   },
 });
 

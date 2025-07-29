@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import walletReducer from './slices/walletSlice';
+import swapReducer from './slices/swapSlice';
 import {
   persistStore,
   persistReducer,
@@ -12,30 +12,11 @@ import {
 } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 
-const walletPersistConfig = {
-  key: 'wallet',
-  storage,
-  whitelist: ['address', 'chainId', 'isConnected'],
-};
-
-const persistedWalletReducer = persistReducer(
-  walletPersistConfig,
-  walletReducer
-);
-
 export const store = configureStore({
   reducer: {
-    wallet: persistedWalletReducer,
+    swap: swapReducer,
   },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-      },
-    }),
 });
-
-export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

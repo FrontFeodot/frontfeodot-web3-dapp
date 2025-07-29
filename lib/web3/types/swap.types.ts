@@ -21,3 +21,8 @@ export interface PrepareSwapArgs {
   tokenOutName: string;
   amountInString: string;
 }
+
+export interface SwapStatus {
+  message: string;
+  type: 'success' | 'error' | 'info';
+}

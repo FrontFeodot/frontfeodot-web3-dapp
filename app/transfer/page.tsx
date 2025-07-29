@@ -24,7 +24,7 @@ const Transfer = () => {
           width: '100%',
           padding: 4,
           borderRadius: 3,
-          backgroundColor: 'background.paper',
+          background: 'linear-gradient(180deg, #000000 0%, #2C2C2C 80%)',
         }}
       >
         <TransferTokens />

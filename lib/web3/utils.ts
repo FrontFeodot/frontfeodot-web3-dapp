@@ -1,46 +1,13 @@
-import {
-  Address,
-  Chain,
-  createPublicClient,
-  createWalletClient,
-  custom,
-  erc20Abi,
-  http,
-  PublicClient,
-} from 'viem';
+import { Address, Chain, erc20Abi } from 'viem';
 import { getWagmiConfig, hardhatFork } from './wagmiConfig';
 import { getAccount } from '@wagmi/core';
-import { DefinedWalletClient } from './types';
 import { TOKEN_ADDRESS_LIST } from '../constants';
-
-export const getRPC_URL = () =>
-  process.env.NEXT_PUBLIC_RPC_URL || 'http://127.0.0.1:8545';
+import { getPublicClient } from './clients';
 
 export const isNativeTokenName = (token: string) => token === 'ETH';
 
 export const getCurrentChain = (): Chain => {
   return hardhatFork;
-};
-
-export const getPublicClient = (): PublicClient => {
-  return createPublicClient({
-    chain: hardhatFork,
-    transport: http(getRPC_URL()),
-  });
-};
-
-export const getWalletClient = (): DefinedWalletClient => {
-  const wagmiConfig = getWagmiConfig();
-  const address = getAccount(wagmiConfig).address;
-  if (!address) throw new Error('Address is not initialized');
-
-  const currentChain = getCurrentChain();
-  const walletClient = createWalletClient({
-    transport: custom(window.ethereum!),
-    chain: currentChain,
-    account: address,
-  });
-  return walletClient;
 };
 
 export const getDecimals = async (tokenAddress: Address): Promise<number> => {
@@ -58,4 +25,42 @@ export const getTokenAddress = (tokenName: string): Address => {
     return TOKEN_ADDRESS_LIST['WETH'];
   }
   return TOKEN_ADDRESS_LIST[tokenName];
+};
+
+export const getBalance = async ({
+  tokenName,
+  tokenAddress,
+}: {
+  tokenName?: string;
+  tokenAddress?: Address;
+}): Promise<bigint> => {
+  const publicClient = getPublicClient();
+  const wagmiConfig = getWagmiConfig();
+  const ownerAddress = getAccount(wagmiConfig).address;
+  const address = tokenName
+    ? getTokenAddress(tokenName)
+    : (tokenAddress as Address);
+  console.log('address, tokenAddress', ownerAddress, tokenAddress);
+  if (!ownerAddress) throw new Error('Address is not initialized');
+
+  if (tokenName === 'ETH') {
+    return await publicClient.getBalance({
+      address: ownerAddress,
+    });
+  }
+  return await publicClient.readContract({
+    address,
+    abi: erc20Abi,
+    functionName: 'balanceOf',
+    args: [ownerAddress],
+  });
+};
+
+export const isEnoughBalance = async (
+  tokenAddress: Address,
+  amount: bigint
+) => {
+  const balance = await getBalance({ tokenAddress });
+  console.log('balance, amount', balance > amount);
+  return balance > amount;
 };

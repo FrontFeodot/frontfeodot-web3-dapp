@@ -6,14 +6,9 @@ import {
   parseEther,
   parseUnits,
 } from 'viem';
-import {
-  getDecimals,
-  getPublicClient,
-  getTokenAddress,
-  getWalletClient,
-  isNativeTokenName,
-} from './utils';
+import { getDecimals, getTokenAddress, isNativeTokenName } from './utils';
 import { DefinedWalletClient } from './types';
+import { getPublicClient, getWalletClient } from './clients';
 
 export const transferToWallet = async (
   receiver: string,

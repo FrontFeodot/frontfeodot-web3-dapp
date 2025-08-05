@@ -1,63 +1,16 @@
-import { encodeFunctionData, erc20Abi, parseUnits } from 'viem';
+import { encodeFunctionData, erc20Abi } from 'viem';
+import { isEnoughBalance, isNativeTokenName } from './utils';
 import {
-  getDecimals,
-  getTokenAddress,
-  isEnoughBalance,
-  isNativeTokenName,
-} from './utils';
-import {
-  DEADLINE,
-  POOL_FEE,
-  QUOTER_ABI,
-  QUOTER_ADDRESS,
   SLIPPAGE_TOLERANCE,
   SWAP_ABI,
   SWAP_ROUTER_ADDRESS,
   TOKEN_ADDRESS_LIST,
 } from '../constants';
-import type { PublicClient } from 'viem';
-import {
-  PrepareSwapArgs,
-  QuotingParams,
-  SwapArgs,
-  SwapStatus,
-} from './types/swap.types';
+import { SwapPayload, SwapStatus } from './types/swap.types';
 import { DefinedWalletClient } from './types';
 import { getPublicClient, getWalletClient } from './clients';
 import { Dispatch, SetStateAction } from 'react';
-
-export const prepareSwap = async ({
-  tokenInName,
-  tokenOutName,
-  amountInString,
-}: PrepareSwapArgs): Promise<SwapArgs> => {
-  const tokenIn = getTokenAddress(tokenInName);
-  const tokenOut = getTokenAddress(tokenOutName);
-  const decimals = await getDecimals(tokenIn);
-  const amountIn = parseUnits(amountInString, decimals);
-
-  const isNativeIn = isNativeTokenName(tokenInName);
-  const isNativeOut = isNativeTokenName(tokenOutName);
-
-  return { tokenIn, tokenOut, amountIn, isNativeIn, isNativeOut };
-};
-
-const getQuotedAmountMin = async (
-  params: QuotingParams,
-  publicClient: PublicClient
-) => {
-  const [quotedAmountOut] = await publicClient.readContract({
-    address: QUOTER_ADDRESS,
-    abi: QUOTER_ABI,
-    functionName: 'quoteExactInputSingle',
-    args: [params as never],
-  });
-
-  const amountOutMin =
-    (quotedAmountOut * (10000n - SLIPPAGE_TOLERANCE)) / 10000n;
-
-  return amountOutMin;
-};
+import { getQuotedTokens } from './quoter';
 
 const wrapETH = async (
   amount: bigint,
@@ -114,7 +67,7 @@ const unWrapETH = async (
 };
 
 export const swapTokenManager = async (
-  { amountIn, tokenIn, tokenOut, isNativeIn, isNativeOut }: SwapArgs,
+  { amountIn, tokenIn, tokenOut }: SwapPayload,
   setStatus: Dispatch<SetStateAction<SwapStatus>>
 ): Promise<void> => {
   try {
@@ -122,8 +75,11 @@ export const swapTokenManager = async (
     const walletClient = getWalletClient();
     const { address: ownerAddress } = walletClient.account;
 
-    const isWethToEth = tokenIn === TOKEN_ADDRESS_LIST['WETH'] && isNativeOut;
-    const isEthToWeth = isNativeIn && tokenOut === TOKEN_ADDRESS_LIST['WETH'];
+    const isNativeIn = isNativeTokenName(tokenIn.symbol);
+    const isNativeOut = isNativeTokenName(tokenOut.symbol);
+
+    const isWethToEth = tokenIn.symbol === 'WETH' && isNativeOut;
+    const isEthToWeth = isNativeIn && tokenOut.symbol === 'WETH';
 
     if (!(await isEnoughBalance(tokenIn, amountIn))) {
       setStatus({ message: 'Not enough balance', type: 'error' });
@@ -139,21 +95,17 @@ export const swapTokenManager = async (
       return setStatus(result);
     }
 
-    const quotingParams: QuotingParams = {
+    const quotingParams = {
       tokenIn,
       tokenOut,
       amountIn,
-      fee: POOL_FEE,
-      sqrtPriceLimitX96: 0n,
     };
     setStatus({ message: 'Quoting swap...', type: 'info' });
-
-    const amountOutMin = await getQuotedAmountMin(quotingParams, publicClient);
 
     if (!isNativeIn) {
       setStatus({ message: 'Approving swap...', type: 'info' });
       const allowance = await publicClient.readContract({
-        address: tokenIn,
+        address: tokenIn.id,
         abi: erc20Abi,
         functionName: 'allowance',
         args: [ownerAddress, SWAP_ROUTER_ADDRESS],
@@ -161,24 +113,39 @@ export const swapTokenManager = async (
 
       if (allowance < amountIn) {
         await walletClient.writeContract({
-          address: tokenIn,
+          address: tokenIn.id,
           abi: erc20Abi,
           functionName: 'approve',
           args: [SWAP_ROUTER_ADDRESS, amountIn],
         });
       }
     }
+    const DEADLINE = BigInt(Math.floor(Date.now() / 1000) + 10 * 60);
+
+    const quotingResult = await getQuotedTokens(quotingParams);
+
+    if (!quotingResult || !quotingResult.length) {
+      setStatus({
+        message: 'No pools found, please change tokens',
+        type: 'error',
+      });
+      return;
+    }
+
+    const amountOutMin =
+      (quotingResult[0].amountOut * (10000n - SLIPPAGE_TOLERANCE)) / 10000n;
 
     const params = {
-      tokenIn,
-      tokenOut,
-      fee: POOL_FEE,
+      tokenIn: tokenIn.id,
+      tokenOut: tokenOut.id,
+      fee: quotingResult[0].fee,
       recipient: isNativeOut ? SWAP_ROUTER_ADDRESS : ownerAddress,
       deadline: DEADLINE,
       amountIn,
       amountOutMinimum: amountOutMin,
       sqrtPriceLimitX96: 0,
     };
+    console.log(params);
 
     setStatus({
       message: 'Waiting for transaction confirmation by user...',
@@ -220,11 +187,12 @@ export const swapTokenManager = async (
       abi: SWAP_ABI,
       functionName: 'multicall',
       args: [DEADLINE, [callDataSwap, callDataUnwrap, callDataRefund]],
-      value: isNativeIn ? amountIn : 0n,
     });
 
     console.log('TX Swap hash:', tx);
-    return setStatus({ message: 'Successfully swapped', type: 'success' });
+    setStatus({ message: 'Successfully swapped', type: 'success' });
+    setTimeout(() => setStatus({ message: '', type: 'info' }), 5000);
+    return;
   } catch (err) {
     console.error(err);
     if (err instanceof Error) {

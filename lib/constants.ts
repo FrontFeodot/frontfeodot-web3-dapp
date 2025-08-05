@@ -25,27 +25,11 @@ export type TokenName = keyof typeof TOKEN_ADDRESS_LIST | 'ETH';
 
 export const QUOTER_ADDRESS = '0x3d4e44Eb1374240CE5F1B871ab261CD16335B76a';
 
-export const QUOTER_ABI = parseAbi([
-  'function quoteExactInputSingle((address tokenIn,address tokenOut,uint256 amountIn,uint24 fee,uint160 sqrtPriceLimitX96)) view returns (uint256 amountOut,uint160 sqrtPriceX96After,uint32 initializedTicksCrossed,uint256 gasEstimate)',
-]);
-
-/* export const V_2_ROUTER_ABI = [
-  'function getAmountsOut(uint256 amountIn, address[] calldata path) external view returns (uint256[] memory amounts)',
-  'function swapExactETHForTokens(uint256 amountOutMin, address[] calldata path, address to, uint256 deadline) external payable returns (uint256[] memory amounts)',
-  'function swapExactTokensForETH(uint256,uint256,address[],address,uint256) external returns (uint256[] memory)',
-];
-export const V_3_ROUTER_ABI = [
-  'function exactInputSingle((address tokenIn,address tokenOut,uint24 fee,address recipient,uint256 deadline,uint256 amountIn,uint256 amountOutMinimum,uint160 sqrtPriceLimitX96) params) external payable returns (uint256)',
-  'function multicall(uint256 deadline, bytes[] data) payable returns (bytes[] results)',
-  'function unwrapWETH9(uint256 amountMinimum, address recipient) payable',
-  'function refundETH() payable',
-]; */
-
 export const SLIPPAGE_TOLERANCE = 50n;
 
-export const DEADLINE = BigInt(Math.floor(Date.now() / 1000) + 10 * 60);
+export const FEE = 3000;
 
-export const POOL_FEE = 3000;
+export const FEE_LIST = ['100', '500', '3000', '10000'];
 
 export const SWAP_ROUTER_ADDRESS = '0x2626664c2603336E57B271c5C0b26F421741e481';
 export const SWAP_ABI = [
@@ -110,3 +94,45 @@ export const SWAP_ABI = [
     type: 'function',
   },
 ];
+
+export const CHAINLINK_ETH_USD_ABI = [
+  {
+    inputs: [],
+    name: 'latestRoundData',
+    outputs: [
+      { internalType: 'uint80', name: 'roundId', type: 'uint80' },
+      { internalType: 'int256', name: 'answer', type: 'int256' },
+      { internalType: 'uint256', name: 'startedAt', type: 'uint256' },
+      { internalType: 'uint256', name: 'updatedAt', type: 'uint256' },
+      { internalType: 'uint80', name: 'answeredInRound', type: 'uint80' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'decimals',
+    outputs: [{ internalType: 'uint8', name: '', type: 'uint8' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
+export const UNI_FACTORY_ABI = [
+  {
+    inputs: [
+      { internalType: 'address', name: '', type: 'address' },
+      { internalType: 'address', name: '', type: 'address' },
+      { internalType: 'uint24', name: '', type: 'uint24' },
+    ],
+    name: 'getPool',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+];
+
+export const QUOTER_ABI = parseAbi([
+  'function quoteExactInputSingle((address tokenIn,address tokenOut,uint256 amountIn,uint24 fee,uint160 sqrtPriceLimitX96)) view returns (uint256 amountOut,uint160 sqrtPriceX96After,uint32 initializedTicksCrossed,uint256 gasEstimate)',
+  'function quoteExactOutputSingle((address tokenIn,address tokenOut,uint256 amount,uint24 fee,uint160 sqrtPriceLimitX96)) view returns (uint256 amountIn, uint160 sqrtPriceX96After,uint32 initializedTicksCrossed,uint256 gasEstimate)',
+]);

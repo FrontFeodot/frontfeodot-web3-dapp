@@ -9,6 +9,7 @@ import { DefinedWalletClient } from './types';
 import { getWagmiConfig, hardhatFork } from './wagmiConfig';
 import { RPC_URL } from '../constants';
 import { getAccount } from 'wagmi/actions';
+import { getCurrentChain } from './utils';
 
 let walletClient: DefinedWalletClient;
 let publicClient: PublicClient;
@@ -16,6 +17,7 @@ let publicClient: PublicClient;
 export const getPublicClient = (): PublicClient => {
   if (!publicClient) {
     publicClient = createPublicClient({
+      cacheTime: 20000,
       chain: hardhatFork, // should be changed after deploy
       transport: http(RPC_URL),
     });
@@ -38,4 +40,18 @@ export const getWalletClient = (): DefinedWalletClient => {
     });
   }
   return walletClient;
+};
+
+export const createCancellablePublicClient = (
+  signal: AbortSignal
+): PublicClient => {
+  const chain = getCurrentChain();
+  return createPublicClient({
+    chain,
+    transport: http(undefined, {
+      fetchOptions: {
+        signal,
+      },
+    }),
+  });
 };

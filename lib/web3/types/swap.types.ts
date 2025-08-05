@@ -1,28 +1,30 @@
-import { Address } from 'viem';
+import { Dispatch, SetStateAction } from 'react';
+import { Token } from './token.types';
 
-export interface SwapArgs {
-  tokenIn: Address;
+export interface SwapPayload {
+  tokenIn: Token;
+  tokenOut: Token;
   amountIn: bigint;
-  tokenOut: Address;
-  isNativeIn: boolean;
-  isNativeOut: boolean;
+  signal?: AbortSignal;
 }
 
-export interface QuotingParams {
-  tokenIn: Address;
-  tokenOut: Address;
-  amountIn: bigint;
-  fee: number;
-  sqrtPriceLimitX96: bigint;
-}
-
-export interface PrepareSwapArgs {
-  tokenInName: string;
-  tokenOutName: string;
-  amountInString: string;
+export interface QuoteExactOutputParams {
+  tokenIn: Token;
+  tokenOut: Token;
+  amountOut: bigint;
+  signal: AbortSignal;
 }
 
 export interface SwapStatus {
   message: string;
   type: 'success' | 'error' | 'info';
 }
+
+interface QuotingHandlers {
+  setAmountInString: Dispatch<SetStateAction<string>>;
+  setAmountOutString: Dispatch<SetStateAction<string>>;
+  setIsPending: Dispatch<SetStateAction<boolean>>;
+  setStatus: Dispatch<SetStateAction<SwapStatus>>;
+}
+
+export type SetQuotedData = QuotingHandlers & SwapPayload & { field: string };

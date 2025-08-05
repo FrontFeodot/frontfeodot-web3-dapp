@@ -1,14 +1,23 @@
-import { TOKEN_ADDRESS_LIST } from '@/lib/constants';
 import { Box } from '@mui/material';
 import TokenListItem from './TokenListItem';
+import { getCachedTokens } from '@/lib/getCachedTokens';
 
-const TokenList = () => {
+const TokenList = async () => {
+  const tokenList = await getCachedTokens();
+  console.log(tokenList);
   return (
     <Box
-      sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '50%' }}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1,
+        width: '100%',
+        overflow: 'auto',
+        height: '100%',
+      }}
     >
-      {Object.keys(TOKEN_ADDRESS_LIST).map((tokenName) => (
-        <TokenListItem key={tokenName} token={tokenName} />
+      {tokenList.map((token) => (
+        <TokenListItem key={token.symbol} token={token} />
       ))}
     </Box>
   );

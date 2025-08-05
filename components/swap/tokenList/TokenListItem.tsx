@@ -1,35 +1,39 @@
 'use client';
 
+import TokenLogo from '@/components/common/TokenLogo';
+import { Token } from '@/lib/web3/types/token.types';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
-  selectTokenInName,
-  selectTokenOutName,
-  setTokenInName,
-  setTokenOutName,
+  selectTokenIn,
+  selectTokenOut,
+  setTokenIn,
+  setTokenOut,
 } from '@/store/slices/swapSlice';
-import { Button, ButtonGroup, Paper, Typography } from '@mui/material';
+import { Box, Button, ButtonGroup, Paper, Typography } from '@mui/material';
 
 interface TokenListItemProps {
-  token: string;
+  token: Token;
 }
 
 const TokenListItem = ({ token }: TokenListItemProps) => {
+  const { id, symbol } = token;
+
   const dispatch = useAppDispatch();
-  const tokenInName = useAppSelector(selectTokenInName);
-  const tokenOutName = useAppSelector(selectTokenOutName);
+  const tokenIn = useAppSelector(selectTokenIn);
+  const tokenOut = useAppSelector(selectTokenOut);
 
   const handleAddToken = (direction: 'in' | 'out') => {
     if (direction === 'in') {
-      dispatch(setTokenInName(token));
-      if (token === tokenOutName) {
-        dispatch(setTokenOutName(tokenInName));
+      dispatch(setTokenIn(token));
+      if (symbol === tokenOut?.symbol) {
+        dispatch(setTokenOut(tokenIn));
       }
     }
 
     if (direction === 'out') {
-      dispatch(setTokenOutName(token));
-      if (token === tokenInName) {
-        dispatch(setTokenInName(tokenOutName));
+      dispatch(setTokenOut(token));
+      if (symbol === tokenIn?.symbol) {
+        dispatch(setTokenIn(tokenOut));
       }
     }
   };
@@ -46,16 +50,20 @@ const TokenListItem = ({ token }: TokenListItemProps) => {
         p: 1,
       }}
     >
-      <Typography variant="h6">{token}</Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
+        <TokenLogo id={id} symbol={symbol} />
+        <Typography variant="h6">{symbol}</Typography>
+      </Box>
+
       <ButtonGroup variant="contained">
         <Button
-          disabled={token === tokenInName}
+          disabled={symbol === tokenIn?.symbol}
           onClick={() => handleAddToken('in')}
         >
           <Typography color="textPrimary"> Swap from</Typography>
         </Button>
         <Button
-          disabled={token === tokenOutName}
+          disabled={symbol === tokenOut?.symbol}
           onClick={() => handleAddToken('out')}
         >
           <Typography color="textPrimary"> Swap to</Typography>

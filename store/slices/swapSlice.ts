@@ -1,15 +1,16 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { RootState } from '..';
+import { Token } from '@/lib/web3/types/token.types';
 
 export interface SwapState {
-  tokenInName: string;
-  tokenOutName: string;
+  tokenIn: Token | null;
+  tokenOut: Token | null;
   amountInString: string;
 }
 
 const initialState: SwapState = {
-  tokenInName: '',
-  tokenOutName: '',
+  tokenIn: null,
+  tokenOut: null,
   amountInString: '',
 };
 
@@ -17,11 +18,11 @@ const swapSlice = createSlice({
   name: 'swap',
   initialState,
   reducers: {
-    setTokenInName: (state, action) => {
-      state.tokenInName = action.payload;
+    setTokenIn: (state, action) => {
+      state.tokenIn = action.payload;
     },
-    setTokenOutName: (state, action) => {
-      state.tokenOutName = action.payload;
+    setTokenOut: (state, action) => {
+      state.tokenOut = action.payload;
     },
     setAmountInString: (state, action) => {
       state.amountInString = action.payload;
@@ -32,21 +33,12 @@ const swapSlice = createSlice({
   },
 });
 
-export const {
-  setTokenInName,
-  setTokenOutName,
-  setAmountInString,
-  resetSwapState,
-} = swapSlice.actions;
+export const { setTokenIn, setTokenOut, setAmountInString, resetSwapState } =
+  swapSlice.actions;
 
-export const selectTokenInName = (state: RootState) => state.swap.tokenInName;
-export const selectTokenOutName = (state: RootState) => state.swap.tokenOutName;
+export const selectTokenIn = (state: RootState) => state.swap.tokenIn;
+export const selectTokenOut = (state: RootState) => state.swap.tokenOut;
 export const selectAmountInString = (state: RootState) =>
   state.swap.amountInString;
-
-export const selectIsTokenSelected =
-  (tokenName: string) => (state: RootState) =>
-    state.swap.tokenInName === tokenName ||
-    state.swap.tokenOutName === tokenName;
 
 export default swapSlice.reducer;

@@ -4,11 +4,12 @@ import { NAV_ROUTES } from '@/lib/constants';
 import { Toolbar, Typography } from '@mui/material';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAccount } from 'wagmi';
 
 const NavBar = () => {
   const pathname = usePathname();
   const isSelected = (path: string) => pathname === path;
-
+  const { isConnected } = useAccount();
   return (
     <Toolbar
       sx={{
@@ -20,19 +21,26 @@ const NavBar = () => {
         marginLeft: '200px',
       }}
     >
-      {NAV_ROUTES.map((route) => (
+      {isConnected ? (
+        NAV_ROUTES.map((route) => (
+          <Typography
+            variant="h6"
+            component="div"
+            key={route.name}
+            color={`${isSelected(route.href) ? 'primary' : 'inherit'}`}
+          >
+            <Link href={route.href}>{route.name}</Link>
+          </Typography>
+        ))
+      ) : (
         <Typography
-          sx={{
-            borderBottom: `2px solid ${isSelected(route.href) ? '#239A3B' : 'transparent'}`,
-          }}
           variant="h6"
           component="div"
-          key={route.name}
-          color={`${isSelected(route.href) ? 'primary' : 'inherit'}`}
+          color={`${isSelected('/') ? 'primary' : 'inherit'}`}
         >
-          <Link href={route.href}>{route.name}</Link>
+          <Link href="/">Home</Link>
         </Typography>
-      ))}
+      )}
     </Toolbar>
   );
 };

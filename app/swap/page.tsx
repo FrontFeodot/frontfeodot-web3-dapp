@@ -8,19 +8,21 @@ const Swap = () => {
       elevation={24}
       sx={{
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: 'column',
         gap: 4,
         alignContent: 'center',
         alignSelf: 'center',
         maxWidth: '1280px',
         width: '100%',
+        maxHeight: '60%',
         padding: 4,
         borderRadius: 3,
-        background: 'linear-gradient(180deg, #000000 0%, #2C2C2C 80%)',
+        background: 'linear-gradient(90deg, #000000 0%, #2C2C2C 80%)',
+        overflow: 'hidden',
       }}
     >
-      <TokenList />
       <SwapSection />
+      <TokenList />
     </Paper>
   );
 };

@@ -9,6 +9,7 @@ import { headers } from 'next/headers';
 import WagmiProvider from '@/store/wagmiProvider/WagmiProvider';
 import { Box } from '@mui/material';
 import PriceTicker from '@/components/priceTicker/PriceTicker';
+import { getCachedTokens } from '@/lib/graphql/getCachedTokens';
 
 export const metadata: Metadata = {
   title: 'Swap Dapp',
@@ -27,6 +28,9 @@ export default async function RootLayout({
     getWagmiConfig(),
     (await headers()).get('cookie')
   );
+
+  const initialTokenList = await getCachedTokens();
+
   return (
     <html lang="en">
       <body>
@@ -34,7 +38,7 @@ export default async function RootLayout({
           <WagmiProvider initialState={initialState}>
             <ReduxProvider>
               <Header />
-              <PriceTicker />
+              <PriceTicker initialTokenList={initialTokenList} />
               <Box
                 sx={{
                   display: 'flex',

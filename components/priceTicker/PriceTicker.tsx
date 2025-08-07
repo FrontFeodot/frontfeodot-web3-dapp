@@ -2,14 +2,16 @@
 
 import { Box, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import { fetchTokens } from '../../app/api/tokens/route';
+import { fetchTokens } from './fetchTokens';
+import { Token } from '@/lib/web3/types/token.types';
 
-const PriceTicker = () => {
+const PriceTicker = ({ initialTokenList }: { initialTokenList: Token[] }) => {
   const { data: tokenList } = useQuery({
     queryKey: ['tokenList'],
     queryFn: fetchTokens,
     staleTime: 60 * 1000,
     refetchInterval: 60 * 1000,
+    initialData: initialTokenList,
   });
 
   if (!tokenList) return null;

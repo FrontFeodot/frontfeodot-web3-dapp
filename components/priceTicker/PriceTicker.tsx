@@ -25,7 +25,7 @@ const PriceTicker = async () => {
       >
         {[...tokenList, ...tokenList].map(
           ({ symbol, tokenDayData: [today, yesterday] }, index) => {
-            if (!today || !yesterday || symbol === 'ETH') return null;
+            if (!today || !yesterday || symbol === 'ETH') return;
             const diffUSD = Number(today.priceUSD) - Number(yesterday.priceUSD);
             const diffPercent = (
               (diffUSD / Number(yesterday.priceUSD)) *

@@ -2,11 +2,7 @@
 
 import { useAppSelector } from '@/store/hooks';
 import { selectTokenIn, selectTokenOut } from '@/store/slices/swapSlice';
-import {
-  Box,
-  Button,
-  Typography,
-} from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { isNonZero } from '@/lib/regex';
 import { useGasPrice } from 'wagmi';
@@ -50,11 +46,7 @@ const SwapSection = () => {
       });
     }
   }, [gasPrice, tokenIn, tokenOut]);
-  console.log(
-    'tokenInBalance, tokenOutBalance =>',
-    tokenInBalance,
-    tokenOutBalance
-  );
+
   return (
     <Box
       sx={{

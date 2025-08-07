@@ -81,8 +81,7 @@ export async function prepareSwapTransaction({
       ...result,
       ...(approvalParams ? { approvalParams } : {}),
     };
-  } catch (error) {
-    console.error('Swap preparation failed:', error);
+  } catch {
     return { type: 'Error', message: 'Failed to prepare transaction' };
   }
 }

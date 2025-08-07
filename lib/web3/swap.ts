@@ -15,7 +15,7 @@ const wrapETH = async (
 ): Promise<SwapStatus> => {
   try {
     const address = await getWrapperNativeTokenAddress();
-    const tx = await walletClient.writeContract({
+    await walletClient.writeContract({
       address,
       abi: [
         {
@@ -30,10 +30,8 @@ const wrapETH = async (
       value: amount,
     });
 
-    console.log('Wrap tx:', tx);
     return { message: 'Successfuly swapped', type: 'success' };
-  } catch (err) {
-    console.error('Error wrapping ETH:', err);
+  } catch {
     return { message: 'Something went wrong', type: 'error' };
   }
 };
@@ -61,8 +59,7 @@ const unWrapETH = async (
     });
 
     return { message: 'Successfuly swapped', type: 'success' };
-  } catch (err) {
-    console.log(err);
+  } catch {
     return { message: 'Something went wrong', type: 'error' };
   }
 };
@@ -84,8 +81,6 @@ export const swapTokenManager = async (
       ownerAddress,
     });
 
-    console.log('preparedTransaction =>', preparedTransaction);
-
     if (preparedTransaction.type === 'Error') {
       setStatus({ message: preparedTransaction.message, type: 'error' });
       return;
@@ -96,7 +91,7 @@ export const swapTokenManager = async (
 
     const isWethToEth = tokenIn.symbol === 'WETH' && isNativeOut;
     const isEthToWeth = isNativeIn && tokenOut.symbol === 'WETH';
-    console.log('isWethToEth, isEthToWeth =>', isWethToEth, isEthToWeth);
+
     if (isWethToEth) {
       const result = await unWrapETH(amountIn, walletClient);
       return setStatus(result);
@@ -129,14 +124,13 @@ export const swapTokenManager = async (
     };
 
     if (!isNativeOut) {
-      const txSwap = await walletClient.writeContract({
+      await walletClient.writeContract({
         address: SWAP_ROUTER_ADDRESS,
         abi: SWAP_ABI,
         functionName: 'exactInputSingle',
         args: [params],
         value: isNativeIn ? amountIn : 0n,
       });
-      console.log('TX Swap hash:', txSwap);
       return setStatus({ message: 'Successfully swapped', type: 'success' });
     }
 
@@ -169,7 +163,6 @@ export const swapTokenManager = async (
     setTimeout(() => setStatus({ message: '', type: 'info' }), 5000);
     return;
   } catch (err) {
-    console.error(err);
     if (err instanceof Error) {
       const message = err.message.split('.')[0];
       return setStatus({ message, type: 'error' });

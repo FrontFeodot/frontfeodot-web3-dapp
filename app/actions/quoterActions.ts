@@ -24,13 +24,11 @@ export const quoteTokens = async (
     const quotedTokens = await getQuotedTokens(params);
 
     if (!quotedTokens.length) {
-      console.log('No pool found');
       return;
     }
 
     return quotedTokens[0];
-  } catch (e) {
-    console.error(e);
+  } catch {
     return;
   }
 };
@@ -53,7 +51,7 @@ export const getQuotedTokens = async (
         !poolAddress ||
         poolAddress === '0x0000000000000000000000000000000000000000'
       ) {
-        return null;
+        return;
       }
       const [amountOut] = await publicClient.readContract({
         address: QUOTER_ADDRESS,
@@ -75,13 +73,7 @@ export const getQuotedTokens = async (
       }
 
       return { amountOut, fee: Number(fee) };
-    } catch (error) {
-      console.log('error in cycle', error);
-      if ((error as { name: string }).name === 'AbortError') {
-        console.log(`Quote request for fee ${fee} was aborted.`);
-        return;
-      }
-      console.error(`Error fetching quote for fee ${fee}:`, error);
+    } catch {
       return;
     }
   });
@@ -96,7 +88,6 @@ export const getQuotedTokens = async (
         result.status === 'fulfilled' && result.value !== null
     )
     .map((result) => result.value);
-  console.log('successfulQuotes', successfulQuotes);
   return successfulQuotes.sort((a, b) => (b.amountOut > a.amountOut ? 1 : -1));
 };
 
@@ -111,13 +102,11 @@ export const quoteExactOutput = async (
     const quotedTokens = await getQuotedTokensReverse(params);
 
     if (!quotedTokens.length) {
-      console.log('No pool found for reverse quote');
       return;
     }
 
     return quotedTokens[0].amountIn;
-  } catch (e) {
-    console.error(e);
+  } catch {
     return;
   }
 };
@@ -140,7 +129,7 @@ const getQuotedTokensReverse = async (
         !poolAddress ||
         poolAddress === '0x0000000000000000000000000000000000000000'
       ) {
-        return null;
+        return;
       }
 
       const [amountIn] = await publicClient.readContract({
@@ -159,13 +148,12 @@ const getQuotedTokensReverse = async (
       });
 
       if (!amountIn) {
-        return null;
+        return;
       }
 
       return { amountIn, fee: Number(fee) };
-    } catch (error) {
-      console.error(`Error fetching reverse quote for fee ${fee}:`, error);
-      return null;
+    } catch {
+      return;
     }
   });
 

@@ -36,7 +36,6 @@ export const prepareTransferTransaction = async ({
       args: [receiver, value],
     };
   } catch (err) {
-    console.error('Error transferring token:', err);
     if (err instanceof Error) return { type: 'Error', message: err.message };
     return err as TransferTransactionError;
   }

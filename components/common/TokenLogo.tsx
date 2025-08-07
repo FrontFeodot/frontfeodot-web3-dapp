@@ -28,17 +28,7 @@ const getTokenSrc = (address: Address, symbol: string): string => {
 const TokenLogo = ({ id, symbol }: TokenLogoProps) => {
   const logoUrl = getTokenSrc(id, symbol);
 
-  return (
-    <Image
-      src={logoUrl}
-      alt={symbol}
-      width={32}
-      height={32}
-      onError={() => {
-        console.log('error', checksumAddress(id));
-      }}
-    />
-  );
+  return <Image src={logoUrl} alt={symbol} width={32} height={32} />;
 };
 
 export default TokenLogo;

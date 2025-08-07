@@ -35,7 +35,6 @@ export const handleTransferSubmit = async (
       amount,
       token,
     });
-    console.log('response', response);
     if (response instanceof Error) {
       return {
         ...prevState,

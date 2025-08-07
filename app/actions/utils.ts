@@ -2,16 +2,11 @@
 
 import { getPublicClient } from '@/lib/web3/clients';
 import { Token } from '@/lib/web3/types/token.types';
-import { hardhatFork } from '@/lib/web3/wagmiConfig';
-import { Address, Chain, erc20Abi, formatEther } from 'viem';
+import { Address, erc20Abi, formatEther } from 'viem';
 import { getEthPrice } from './pricesActions';
 
 export const isNativeTokenSymbol = async (token: string): Promise<boolean> =>
   token === 'ETH';
-
-export const getCurrentChain = async (): Promise<Chain> => {
-  return hardhatFork;
-};
 
 export const getBalance = async (
   token: Token,

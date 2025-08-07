@@ -6,9 +6,10 @@ import {
   PublicClient,
 } from 'viem';
 import { DefinedWalletClient } from './types/common.types';
-import { getWagmiConfig, hardhatFork } from './wagmiConfig';
+import { getWagmiConfig } from './wagmiConfig';
 import { RPC_URL } from '../constants';
 import { getAccount } from 'wagmi/actions';
+import { base } from 'viem/chains';
 
 let walletClient: DefinedWalletClient;
 let publicClient: PublicClient;
@@ -17,9 +18,9 @@ export const getPublicClient = (): PublicClient => {
   if (!publicClient) {
     publicClient = createPublicClient({
       cacheTime: 20000,
-      chain: hardhatFork, // should be changed after deploy
+      chain: base,
       transport: http(RPC_URL),
-    });
+    }) as PublicClient;
   }
   return publicClient;
 };
@@ -31,10 +32,9 @@ export const getWalletClient = (): DefinedWalletClient => {
 
     if (!address) throw new Error('Address is not initialized');
 
-    const currentChain = hardhatFork; // should be changed after deploy
     walletClient = createWalletClient({
       transport: custom(window.ethereum!),
-      chain: currentChain,
+      chain: base,
       account: address,
     });
   }

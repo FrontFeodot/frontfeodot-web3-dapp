@@ -44,7 +44,6 @@ export const transferToWallet = async ({
     });
     return 'Transfer successful';
   } catch (error) {
-    console.error('transfer error:', error);
     if (error instanceof Error) return error;
     return new Error('Something went wrong');
   }

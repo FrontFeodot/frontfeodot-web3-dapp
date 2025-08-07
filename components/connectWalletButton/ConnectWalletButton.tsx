@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { injected, useAccount, useConnect, useDisconnect } from 'wagmi';
 import { usePathname, useRouter } from 'next/navigation';
 
-const truncateAddress = (address: string, chars = 4): string => {
+const truncateAddress = (address: string, chars = 6): string => {
   if (!address) return '';
   return `${address.substring(0, chars + 2)}...${address.substring(address.length - chars)}`;
 };

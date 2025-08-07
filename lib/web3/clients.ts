@@ -5,11 +5,10 @@ import {
   http,
   PublicClient,
 } from 'viem';
-import { DefinedWalletClient } from './types';
+import { DefinedWalletClient } from './types/common.types';
 import { getWagmiConfig, hardhatFork } from './wagmiConfig';
 import { RPC_URL } from '../constants';
 import { getAccount } from 'wagmi/actions';
-import { getCurrentChain } from './utils';
 
 let walletClient: DefinedWalletClient;
 let publicClient: PublicClient;
@@ -40,18 +39,4 @@ export const getWalletClient = (): DefinedWalletClient => {
     });
   }
   return walletClient;
-};
-
-export const createCancellablePublicClient = (
-  signal: AbortSignal
-): PublicClient => {
-  const chain = getCurrentChain();
-  return createPublicClient({
-    chain,
-    transport: http(undefined, {
-      fetchOptions: {
-        signal,
-      },
-    }),
-  });
 };

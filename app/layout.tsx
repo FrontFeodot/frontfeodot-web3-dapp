@@ -8,6 +8,7 @@ import { getWagmiConfig } from '@/lib/web3/wagmiConfig';
 import { headers } from 'next/headers';
 import WagmiProvider from '@/store/wagmiProvider/WagmiProvider';
 import { Box } from '@mui/material';
+import PriceTicker from '@/components/priceTicker/PriceTicker';
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -30,13 +31,14 @@ export default async function RootLayout({
           <WagmiProvider initialState={initialState}>
             <ReduxProvider>
               <Header />
+              <PriceTicker />
               <Box
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
                   alignContent: 'center',
                   justifyContent: 'center',
-                  height: '100%',
+                  height: 'calc(100vh - 64px)',
                 }}
               >
                 {children}

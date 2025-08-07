@@ -1,6 +1,5 @@
 'use client';
 
-import { TOKEN_ADDRESS_LIST } from '@/lib/constants';
 import {
   Box,
   FormControl,
@@ -16,14 +15,15 @@ import { useAccount, useBalance } from 'wagmi';
 import { formatUnits } from 'viem';
 
 const SelectToken = ({
-  tokenName,
-  setTokenName,
+  token,
+  setToken,
   refetchRef,
+  tokenList,
 }: SelectTokenProps) => {
   const { address } = useAccount();
   const { data: accountBalance, refetch } = useBalance({
     address,
-    ...(tokenName !== 'ETH' ? { token: TOKEN_ADDRESS_LIST[tokenName] } : {}),
+    ...(token.symbol !== 'ETH' ? { token: token.id } : {}),
   });
 
   useEffect(() => {
@@ -37,7 +37,9 @@ const SelectToken = ({
     : 0;
 
   const handleSelectChange = (event: SelectChangeEvent<string>) => {
-    setTokenName(event.target.value);
+    const token = tokenList.find((t) => t.symbol === event.target.value);
+    if (!token) return;
+    setToken(token);
   };
 
   return (
@@ -51,20 +53,20 @@ const SelectToken = ({
             fullWidth
             labelId="token_name_label"
             id="token_name"
-            value={tokenName}
+            value={token.symbol}
             label="Token"
             onChange={handleSelectChange}
           >
-            {Object.keys(TOKEN_ADDRESS_LIST).map((token) => (
-              <MenuItem value={token} key={token}>
-                {token}
+            {tokenList.map(({ symbol }) => (
+              <MenuItem value={symbol} key={symbol}>
+                {symbol}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
       </Box>
       <Typography variant="h6">
-        Balance: {balance || 0} {tokenName}
+        Balance: {balance || 0} {token.symbol}
       </Typography>
     </Box>
   );

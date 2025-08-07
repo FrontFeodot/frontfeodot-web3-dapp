@@ -26,10 +26,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.header + div {
-  height: calc(100vh - 64px);
-}
-
 * {
   box-sizing: border-box;
   padding: 0;
@@ -44,5 +40,14 @@ a {
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
+  }
+}
+
+@keyframes tickerScroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
   }
 }

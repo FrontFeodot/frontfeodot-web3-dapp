@@ -5,22 +5,22 @@ import { Box, Button, Divider, TextField, Typography } from '@mui/material';
 import { useRef, useState } from 'react';
 import SelectToken from './SelectToken';
 import { useAccount } from 'wagmi';
-import { TokenName } from '@/lib/constants';
-import { RefetchBalance } from '@/lib/web3/types';
+import { RefetchBalance } from '@/lib/web3/types/common.types';
+import { Token } from '@/lib/web3/types/token.types';
 
-const RugWhale = () => {
+const RugWhale = ({ tokenList }: { tokenList: Token[] }) => {
   const refetchRef = useRef<RefetchBalance | null>(null);
-  const [tokenName, setTokenName] = useState<TokenName>('ETH');
+  const [token, setToken] = useState<Token>(tokenList[0]);
   const [whaleAddress, setWhaleAddress] = useState('');
   const [amount, setAmount] = useState('');
   const { address } = useAccount();
 
   const handleClick = async () => {
-    if (!address) return;
+    if (!address || !token) return;
     await transferFromWhale({
       to: address,
       amount,
-      token: tokenName,
+      token,
       whale: whaleAddress,
     });
     if (refetchRef.current) {
@@ -58,8 +58,9 @@ const RugWhale = () => {
         }}
       />
       <SelectToken
-        tokenName={tokenName}
-        setTokenName={setTokenName}
+        token={token}
+        setToken={setToken}
+        tokenList={tokenList}
         refetchRef={refetchRef}
       />
       <Button variant="contained" onClick={handleClick}>

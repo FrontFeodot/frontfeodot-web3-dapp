@@ -12,11 +12,12 @@ import SelectToken from './SelectToken';
 import FormError from '../common/FormError';
 import { FormValues, TransferActionState } from './types';
 import { handleTransferSubmit } from './formActions';
-import { RefetchBalance } from '@/lib/web3/types';
+import { RefetchBalance } from '@/lib/web3/types/common.types';
+import { Token } from '@/lib/web3/types/token.types';
 
-const TransferTokens = () => {
+const TransferTokens = ({ tokenList }: { tokenList: Token[] }) => {
   const refetchRef = useRef<RefetchBalance | null>(null);
-  const [tokenName, setTokenName] = useState('ETH');
+  const [token, setToken] = useState(tokenList[0]);
   const [success, setSuccess] = useState(false);
 
   const [formState, formAction, isPending] = useActionState<
@@ -27,7 +28,7 @@ const TransferTokens = () => {
       handleTransferSubmit(
         prevState,
         formData,
-        tokenName,
+        token,
         setSuccess,
         refetchRef.current
       ),
@@ -38,7 +39,7 @@ const TransferTokens = () => {
     }
   );
 
-  const textFieldProps = (field: keyof FormValues): TextFieldProps => ({
+  const getTextFieldProps = (field: keyof FormValues): TextFieldProps => ({
     name: field as string,
     id: field as string,
     error: !!formState.errors?.[field],
@@ -67,20 +68,21 @@ const TransferTokens = () => {
         component="form"
       >
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <TextField {...textFieldProps('receiver')} />
+          <TextField {...getTextFieldProps('receiver')} />
           <FormError message={formState?.errors?.receiver} />
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant="h6">Amount</Typography>
-          <TextField {...textFieldProps('amount')} />
+          <TextField {...getTextFieldProps('amount')} />
 
           <FormError message={formState?.errors?.amount} />
         </Box>
 
         <SelectToken
-          tokenName={tokenName}
-          setTokenName={setTokenName}
+          token={token}
+          setToken={setToken}
+          tokenList={tokenList}
           refetchRef={refetchRef}
         />
 

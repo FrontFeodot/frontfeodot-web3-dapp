@@ -1,24 +1,22 @@
 import { encodeFunctionData, erc20Abi } from 'viem';
-import { isEnoughBalance, isNativeTokenName } from './utils';
-import {
-  SLIPPAGE_TOLERANCE,
-  SWAP_ABI,
-  SWAP_ROUTER_ADDRESS,
-  TOKEN_ADDRESS_LIST,
-} from '../constants';
+
 import { SwapPayload, SwapStatus } from './types/swap.types';
-import { DefinedWalletClient } from './types';
-import { getPublicClient, getWalletClient } from './clients';
+import { DefinedWalletClient } from './types/common.types';
+import { getWalletClient } from './clients';
 import { Dispatch, SetStateAction } from 'react';
-import { getQuotedTokens } from './quoter';
+import { getWrapperNativeTokenAddress } from '../../app/actions/utils';
+import { SWAP_ROUTER_ADDRESS } from './contractAddresses';
+import { SWAP_ABI } from './abi';
+import { prepareSwapTransaction } from '../../app/actions/swapActions';
 
 const wrapETH = async (
   amount: bigint,
   walletClient: DefinedWalletClient
 ): Promise<SwapStatus> => {
   try {
+    const address = await getWrapperNativeTokenAddress();
     const tx = await walletClient.writeContract({
-      address: TOKEN_ADDRESS_LIST['WETH'],
+      address,
       abi: [
         {
           inputs: [],
@@ -34,7 +32,8 @@ const wrapETH = async (
 
     console.log('Wrap tx:', tx);
     return { message: 'Successfuly swapped', type: 'success' };
-  } catch {
+  } catch (err) {
+    console.error('Error wrapping ETH:', err);
     return { message: 'Something went wrong', type: 'error' };
   }
 };
@@ -44,8 +43,10 @@ const unWrapETH = async (
   walletClient: DefinedWalletClient
 ): Promise<SwapStatus> => {
   try {
+    const address = await getWrapperNativeTokenAddress();
+
     await walletClient.writeContract({
-      address: TOKEN_ADDRESS_LIST['WETH'],
+      address,
       abi: [
         {
           inputs: [{ internalType: 'uint256', name: 'wad', type: 'uint256' }],
@@ -71,21 +72,31 @@ export const swapTokenManager = async (
   setStatus: Dispatch<SetStateAction<SwapStatus>>
 ): Promise<void> => {
   try {
-    const publicClient = getPublicClient();
     const walletClient = getWalletClient();
     const { address: ownerAddress } = walletClient.account;
 
-    const isNativeIn = isNativeTokenName(tokenIn.symbol);
-    const isNativeOut = isNativeTokenName(tokenOut.symbol);
+    setStatus({ message: 'Preparing transaction...', type: 'info' });
 
-    const isWethToEth = tokenIn.symbol === 'WETH' && isNativeOut;
-    const isEthToWeth = isNativeIn && tokenOut.symbol === 'WETH';
+    const preparedTransaction = await prepareSwapTransaction({
+      tokenIn,
+      tokenOut,
+      amountIn,
+      ownerAddress,
+    });
 
-    if (!(await isEnoughBalance(tokenIn, amountIn))) {
-      setStatus({ message: 'Not enough balance', type: 'error' });
+    console.log('preparedTransaction =>', preparedTransaction);
+
+    if (preparedTransaction.type === 'Error') {
+      setStatus({ message: preparedTransaction.message, type: 'error' });
       return;
     }
 
+    const { txParams, approvalParams, isNativeIn, isNativeOut } =
+      preparedTransaction;
+
+    const isWethToEth = tokenIn.symbol === 'WETH' && isNativeOut;
+    const isEthToWeth = isNativeIn && tokenOut.symbol === 'WETH';
+    console.log('isWethToEth, isEthToWeth =>', isWethToEth, isEthToWeth);
     if (isWethToEth) {
       const result = await unWrapETH(amountIn, walletClient);
       return setStatus(result);
@@ -95,62 +106,27 @@ export const swapTokenManager = async (
       return setStatus(result);
     }
 
-    const quotingParams = {
-      tokenIn,
-      tokenOut,
-      amountIn,
-    };
-    setStatus({ message: 'Quoting swap...', type: 'info' });
-
-    if (!isNativeIn) {
+    if (approvalParams) {
       setStatus({ message: 'Approving swap...', type: 'info' });
-      const allowance = await publicClient.readContract({
-        address: tokenIn.id,
+      await walletClient.writeContract({
+        address: approvalParams.address,
         abi: erc20Abi,
-        functionName: 'allowance',
-        args: [ownerAddress, SWAP_ROUTER_ADDRESS],
+        functionName: 'approve',
+        args: approvalParams.args,
       });
-
-      if (allowance < amountIn) {
-        await walletClient.writeContract({
-          address: tokenIn.id,
-          abi: erc20Abi,
-          functionName: 'approve',
-          args: [SWAP_ROUTER_ADDRESS, amountIn],
-        });
-      }
     }
+
     const DEADLINE = BigInt(Math.floor(Date.now() / 1000) + 10 * 60);
-
-    const quotingResult = await getQuotedTokens(quotingParams);
-
-    if (!quotingResult || !quotingResult.length) {
-      setStatus({
-        message: 'No pools found, please change tokens',
-        type: 'error',
-      });
-      return;
-    }
-
-    const amountOutMin =
-      (quotingResult[0].amountOut * (10000n - SLIPPAGE_TOLERANCE)) / 10000n;
-
-    const params = {
-      tokenIn: tokenIn.id,
-      tokenOut: tokenOut.id,
-      fee: quotingResult[0].fee,
-      recipient: isNativeOut ? SWAP_ROUTER_ADDRESS : ownerAddress,
-      deadline: DEADLINE,
-      amountIn,
-      amountOutMinimum: amountOutMin,
-      sqrtPriceLimitX96: 0,
-    };
-    console.log(params);
 
     setStatus({
       message: 'Waiting for transaction confirmation by user...',
       type: 'info',
     });
+
+    const params = {
+      ...txParams,
+      deadline: DEADLINE,
+    };
 
     if (!isNativeOut) {
       const txSwap = await walletClient.writeContract({
@@ -173,7 +149,7 @@ export const swapTokenManager = async (
     const callDataUnwrap = encodeFunctionData({
       abi: SWAP_ABI,
       functionName: 'unwrapWETH9',
-      args: [amountOutMin, ownerAddress],
+      args: [params.amountOutMinimum, ownerAddress],
     });
 
     const callDataRefund = encodeFunctionData({
@@ -182,14 +158,13 @@ export const swapTokenManager = async (
       args: [],
     });
 
-    const tx = await walletClient.writeContract({
+    await walletClient.writeContract({
       address: SWAP_ROUTER_ADDRESS,
       abi: SWAP_ABI,
       functionName: 'multicall',
       args: [DEADLINE, [callDataSwap, callDataUnwrap, callDataRefund]],
     });
 
-    console.log('TX Swap hash:', tx);
     setStatus({ message: 'Successfully swapped', type: 'success' });
     setTimeout(() => setStatus({ message: '', type: 'info' }), 5000);
     return;

@@ -1,7 +1,9 @@
 import TransferTokens from '@/components/transfer/TokensTransfer';
+import { getCachedTokens } from '@/lib/graphql/getCachedTokens';
 import { Box } from '@mui/material';
 
-const Transfer = () => {
+const Transfer = async () => {
+  const tokenList = await getCachedTokens();
   return (
     <Box
       sx={{
@@ -27,7 +29,7 @@ const Transfer = () => {
           background: 'linear-gradient(180deg, #000000 0%, #2C2C2C 80%)',
         }}
       >
-        <TransferTokens />
+        <TransferTokens tokenList={tokenList} />
       </Box>
     </Box>
   );

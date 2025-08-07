@@ -5,7 +5,7 @@ export interface Token {
   symbol: string;
   name: string;
   derivedETH: string;
-  tokenDayData?: {
+  tokenDayData: {
     priceUSD: string;
   }[];
   decimals: number;

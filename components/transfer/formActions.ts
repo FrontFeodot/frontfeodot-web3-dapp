@@ -1,7 +1,9 @@
 import { transferToWallet } from '@/lib/web3/transfer';
 import { FormErrorValues, FormValues, TransferActionState } from './types';
 import { Dispatch, SetStateAction } from 'react';
-import { RefetchBalance } from '@/lib/web3/types';
+import { RefetchBalance } from '@/lib/web3/types/common.types';
+import { Address } from 'viem';
+import { Token } from '@/lib/web3/types/token.types';
 
 const validate = ({ amount, receiver }: FormValues): FormErrorValues => {
   const newErrors: { amount?: string; receiver?: string } = {};
@@ -17,7 +19,7 @@ const validate = ({ amount, receiver }: FormValues): FormErrorValues => {
 export const handleTransferSubmit = async (
   prevState: TransferActionState,
   formData: FormData,
-  tokenName: string,
+  token: Token,
   setSuccess: Dispatch<SetStateAction<boolean>>,
   refetcFunc?: RefetchBalance | null
 ): Promise<TransferActionState> => {
@@ -28,13 +30,18 @@ export const handleTransferSubmit = async (
   if (Object.keys(validationErrors).length) {
     return { receiver, amount, errors: validationErrors };
   } else {
-    const response = await transferToWallet(receiver, amount, tokenName);
+    const response = await transferToWallet({
+      receiver: receiver as Address,
+      amount,
+      token,
+    });
+    console.log('response', response);
     if (response instanceof Error) {
       return {
         ...prevState,
         receiver,
         amount,
-        errors: { global: response.message },
+        errors: { global: response.message.split('.')[0] },
       };
     }
     if (refetcFunc) {

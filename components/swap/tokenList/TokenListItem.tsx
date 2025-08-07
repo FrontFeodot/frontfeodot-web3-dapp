@@ -57,12 +57,30 @@ const TokenListItem = ({ token }: TokenListItemProps) => {
 
       <ButtonGroup variant="contained">
         <Button
+          sx={{
+            px: {
+              xs: 1,
+              sm: 3,
+            },
+            py: {
+              xs: 1,
+            },
+          }}
           disabled={symbol === tokenIn?.symbol}
           onClick={() => handleAddToken('in')}
         >
           <Typography color="textPrimary"> Swap from</Typography>
         </Button>
         <Button
+          sx={{
+            px: {
+              xs: 1,
+              sm: 3,
+            },
+            py: {
+              xs: 1,
+            },
+          }}
           disabled={symbol === tokenOut?.symbol}
           onClick={() => handleAddToken('out')}
         >

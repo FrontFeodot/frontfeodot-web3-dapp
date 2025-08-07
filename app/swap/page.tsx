@@ -1,4 +1,4 @@
-import { Paper } from '@mui/material';
+import { Paper, Typography } from '@mui/material';
 import TokenList from '@/components/swap/tokenList/TokenList';
 import SwapSection from '@/components/swap/swapSection/SwapSection';
 
@@ -9,12 +9,13 @@ const Swap = () => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 4,
+        gap: 1,
         alignContent: 'center',
         alignSelf: 'center',
         maxWidth: '1280px',
         width: '100%',
-        maxHeight: '60%',
+        height: '90%',
+        maxHeight: '900px',
         padding: 4,
         borderRadius: 3,
         background: 'linear-gradient(90deg, #000000 0%, #2C2C2C 80%)',
@@ -22,6 +23,16 @@ const Swap = () => {
       }}
     >
       <SwapSection />
+      <Typography
+        sx={{ textAlign: 'center', marginY: 2 }}
+        color="secondary"
+        variant="h4"
+        fontWeight="bold"
+        textTransform="uppercase"
+      >
+        Choose tokens for swap
+      </Typography>
+
       <TokenList />
     </Paper>
   );

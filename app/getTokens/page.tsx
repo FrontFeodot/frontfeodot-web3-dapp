@@ -1,7 +1,10 @@
 import RugWhale from '@/components/transfer/WhaleRug';
+import { getCachedTokens } from '@/lib/graphql/getCachedTokens';
 import { Box, Typography } from '@mui/material';
 
-const GetTokens = () => {
+const GetTokens = async () => {
+  const tokenList = await getCachedTokens();
+
   return (
     <Box
       sx={{
@@ -24,7 +27,7 @@ const GetTokens = () => {
       <Typography variant="h6">
         * Balance will changed after page update
       </Typography>
-      <RugWhale />
+      <RugWhale tokenList={tokenList} />
     </Box>
   );
 };

@@ -1,5 +1,8 @@
 import { isNonZero, isNumericString } from '@/lib/regex';
-import { quoteExactOutput, quoteTokens } from '@/lib/web3/quoter';
+import {
+  quoteExactOutput,
+  quoteTokens,
+} from '../../../../app/actions/quoterActions';
 import { swapTokenManager } from '@/lib/web3/swap';
 import { SwapStatus } from '@/lib/web3/types/swap.types';
 import { Token } from '@/lib/web3/types/token.types';
@@ -12,9 +15,14 @@ type SwapField = 'amountIn' | 'amountOut';
 interface UseInputConrtollProps {
   tokenIn: Token | null;
   tokenOut: Token | null;
+  refetchBalances: () => void;
 }
 
-const useInputConrtoll = ({ tokenIn, tokenOut }: UseInputConrtollProps) => {
+const useInputConrtoll = ({
+  tokenIn,
+  tokenOut,
+  refetchBalances,
+}: UseInputConrtollProps) => {
   const [status, setStatus] = useState<SwapStatus>({
     message: '',
     type: 'info',
@@ -63,21 +71,32 @@ const useInputConrtoll = ({ tokenIn, tokenOut }: UseInputConrtollProps) => {
     const getQuote = async () => {
       setIsPending(true);
       setStatus({ message: '', type: 'info' });
+      if (controller.signal.aborted) return;
 
-      const quotedAmount = isInput
+      const quotingResult = isInput
         ? await quoteTokens({
             tokenIn: fromToken,
             tokenOut: toToken,
             amountIn: amount,
-            signal: controller.signal,
           })
         : await quoteExactOutput({
             tokenIn: toToken,
             tokenOut: fromToken,
             amountOut: amount,
-            signal: controller.signal,
           });
 
+      const quotedAmount =
+        typeof quotingResult === 'bigint'
+          ? quotingResult
+          : quotingResult?.amountOut;
+      if (!quotedAmount) {
+        setStatus({
+          message: 'No pools found, please change tokens or try later',
+          type: 'error',
+        });
+        setIsPending(false);
+        return;
+      }
       if (controller.signal.aborted) return;
 
       if (quotedAmount) {
@@ -141,6 +160,7 @@ const useInputConrtoll = ({ tokenIn, tokenOut }: UseInputConrtollProps) => {
       },
       setStatus
     );
+    refetchBalances();
   };
 
   const getTextFieldProps = (field: SwapField): OutlinedInputProps => {

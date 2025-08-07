@@ -4,22 +4,30 @@ import { useAppDispatch } from '@/store/hooks';
 import { setTokenIn, setTokenOut } from '@/store/slices/swapSlice';
 import { SvgIcon } from '@mui/material';
 
-export function ReverseTokens({
+const ReverseTokens = ({
   tokenIn,
   tokenOut,
 }: {
-  tokenIn: Token;
-  tokenOut: Token;
-}) {
+  tokenIn: Token | null;
+  tokenOut: Token | null;
+}) => {
   const dispatch = useAppDispatch();
-
+  const disabled = !tokenIn || !tokenOut;
   const handleReverseTokens = () => {
+    if (disabled) return;
     dispatch(setTokenIn(tokenOut));
     dispatch(setTokenOut(tokenIn));
   };
   return (
     <SvgIcon
-      sx={{ alignSelf: 'center', cursor: 'pointer' }}
+      sx={{
+        position: 'relative',
+        bottom: 12,
+        alignSelf: 'center',
+        cursor: 'pointer',
+        pointerEvents: disabled ? 'none' : 'auto',
+        color: disabled ? '#2c2c2c' : '#fff',
+      }}
       onClick={handleReverseTokens}
     >
       <svg
@@ -35,4 +43,6 @@ export function ReverseTokens({
       </svg>
     </SvgIcon>
   );
-}
+};
+
+export default ReverseTokens;

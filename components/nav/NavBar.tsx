@@ -18,7 +18,6 @@ const NavBar = () => {
         justifyContent: 'center',
         gap: 4,
         flexGrow: 1,
-        marginLeft: '200px',
       }}
     >
       {isConnected ? (

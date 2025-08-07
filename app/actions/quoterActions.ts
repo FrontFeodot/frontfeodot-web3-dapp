@@ -1,15 +1,21 @@
+'use server';
+
+import { QUOTER_ABI, UNISWAP_FACTORY_ABI } from '@/lib/web3/abi';
 import {
-  FEE_LIST,
-  QUOTER_ABI,
+  QuoteExactOutputParams,
+  QuoteResult,
+  SwapPayload,
+} from '@/lib/web3/types/swap.types';
+import {
   QUOTER_ADDRESS,
-  UNI_FACTORY_ABI,
-} from '../constants';
-import { createCancellablePublicClient, getPublicClient } from './clients';
-import { QuoteExactOutputParams, SwapPayload } from './types/swap.types';
+  UNISWAP_FACTORY_ADDRESS,
+} from '@/lib/web3/contractAddresses';
+import { getPublicClient } from '@/lib/web3/clients';
+import { FEE_LIST } from '@/lib/constants';
 
 export const quoteTokens = async (
   params: SwapPayload
-): Promise<bigint | undefined> => {
+): Promise<bigint | QuoteResult | undefined> => {
   try {
     if (params.tokenIn.id === params.tokenOut.id) {
       return params.amountIn;
@@ -22,11 +28,9 @@ export const quoteTokens = async (
       return;
     }
 
-    return quotedTokens[0].amountOut;
+    return quotedTokens[0];
   } catch (e) {
-    if ((e as DOMException)?.name !== 'AbortError') {
-      console.error(e);
-    }
+    console.error(e);
     return;
   }
 };
@@ -34,15 +38,13 @@ export const quoteTokens = async (
 export const getQuotedTokens = async (
   params: SwapPayload
 ): Promise<{ amountOut: bigint; fee: number }[]> => {
-  const publicClient = params.signal
-    ? createCancellablePublicClient(params.signal)
-    : getPublicClient();
+  const publicClient = getPublicClient();
 
   const quotePromises = FEE_LIST.map(async (fee) => {
     try {
       const poolAddress = await publicClient.readContract({
-        address: '0x33128a8fC17869897dcE68Ed026d694621f6FDfD',
-        abi: UNI_FACTORY_ABI,
+        address: UNISWAP_FACTORY_ADDRESS,
+        abi: UNISWAP_FACTORY_ABI,
         functionName: 'getPool',
         args: [params.tokenIn.id, params.tokenOut.id, fee],
       });
@@ -115,9 +117,7 @@ export const quoteExactOutput = async (
 
     return quotedTokens[0].amountIn;
   } catch (e) {
-    if ((e as DOMException).name !== 'AbortError') {
-      console.error(e);
-    }
+    console.error(e);
     return;
   }
 };
@@ -125,15 +125,13 @@ export const quoteExactOutput = async (
 const getQuotedTokensReverse = async (
   params: QuoteExactOutputParams
 ): Promise<{ amountIn: bigint; fee: number }[]> => {
-  const publicClient = params.signal
-    ? createCancellablePublicClient(params.signal)
-    : getPublicClient();
+  const publicClient = getPublicClient();
 
   const quotePromises = FEE_LIST.map(async (fee) => {
     try {
       const poolAddress = await publicClient.readContract({
-        address: '0x33128a8fC17869897dcE68Ed026d694621f6FDfD',
-        abi: UNI_FACTORY_ABI,
+        address: UNISWAP_FACTORY_ADDRESS,
+        abi: UNISWAP_FACTORY_ABI,
         functionName: 'getPool',
         args: [params.tokenIn.id, params.tokenOut.id, fee],
       });
@@ -166,9 +164,7 @@ const getQuotedTokensReverse = async (
 
       return { amountIn, fee: Number(fee) };
     } catch (error) {
-      if ((error as { name: string }).name !== 'AbortError') {
-        console.error(`Error fetching reverse quote for fee ${fee}:`, error);
-      }
+      console.error(`Error fetching reverse quote for fee ${fee}:`, error);
       return null;
     }
   });

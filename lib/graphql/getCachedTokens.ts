@@ -1,4 +1,4 @@
-import { Token } from './web3/types/token.types';
+import { Token } from '../web3/types/token.types';
 
 const GRAPH_URL =
   'https://gateway.thegraph.com/api/subgraphs/id/GENunSHWLBXm59mBSgPzQ8metBEp9YDfdqwFr91Av1UM';
@@ -9,6 +9,7 @@ const nativeETH: Token = {
   name: 'Ethereum',
   derivedETH: '1',
   decimals: 18,
+  tokenDayData: [],
 };
 
 export const getCachedTokens = async (): Promise<Token[]> => {
@@ -33,7 +34,7 @@ export const getCachedTokens = async (): Promise<Token[]> => {
           }
         }`,
       }),
-      next: { revalidate: 1800 },
+      next: { revalidate: 60 },
     });
 
     if (!res.ok) {
@@ -50,7 +51,7 @@ export const getCachedTokens = async (): Promise<Token[]> => {
         `GraphQL errors: ${errors.map((e) => e.message).join(', ')}`
       );
     }
-
+    nativeETH.tokenDayData = data.tokens[1].tokenDayData;
     data.tokens.unshift(nativeETH);
     return data.tokens;
   } catch (e) {

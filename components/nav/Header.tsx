@@ -15,7 +15,8 @@ export default function Header() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '200px',
+            maxWidth: '200px',
+            width: 'auto',
           }}
         >
           <ConnectWalletButton />

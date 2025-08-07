@@ -1,6 +1,12 @@
 import { Paper, Typography } from '@mui/material';
 import TokenList from '@/components/swap/tokenList/TokenList';
 import SwapSection from '@/components/swap/swapSection/SwapSection';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Swap',
+  description: 'Swap the top 50 tokens via Uniswap v3 pools on the Base network.',
+};
 
 const Swap = () => {
   return (

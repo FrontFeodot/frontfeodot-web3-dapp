@@ -1,6 +1,12 @@
 import TransferTokens from '@/components/transfer/TokensTransfer';
 import { getCachedTokens } from '@/lib/graphql/getCachedTokens';
 import { Box } from '@mui/material';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Transfer',
+  description: 'Transfer your tokens to another wallets on the Base network',
+};
 
 const Transfer = async () => {
   const tokenList = await getCachedTokens();

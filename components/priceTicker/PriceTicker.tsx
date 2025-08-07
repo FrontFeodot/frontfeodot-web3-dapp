@@ -1,8 +1,18 @@
-import { getCachedTokens } from '@/lib/graphql/getCachedTokens';
-import { Box, Typography } from '@mui/material';
+'use client';
 
-const PriceTicker = async () => {
-  const tokenList = await getCachedTokens();
+import { Box, Typography } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
+import { fetchTokens } from '../../app/api/tokens/route';
+
+const PriceTicker = () => {
+  const { data: tokenList } = useQuery({
+    queryKey: ['tokenList'],
+    queryFn: fetchTokens,
+    staleTime: 60 * 1000,
+    refetchInterval: 60 * 1000,
+  });
+
+  if (!tokenList) return null;
 
   return (
     <Box

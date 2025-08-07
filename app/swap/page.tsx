@@ -5,7 +5,8 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Swap',
-  description: 'Swap the top 50 tokens via Uniswap v3 pools on the Base network.',
+  description:
+    'Swap the top 50 tokens via Uniswap v3 pools on the Base network.',
 };
 
 const Swap = () => {

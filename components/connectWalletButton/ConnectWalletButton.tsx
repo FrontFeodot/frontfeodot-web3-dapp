@@ -1,10 +1,24 @@
 'use client';
 
 import Button from '@mui/material/Button';
-import { FormControl, Menu, MenuItem, Typography } from '@mui/material';
+import {
+  Alert,
+  FormControl,
+  Menu,
+  MenuItem,
+  Portal,
+  Typography,
+} from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
-import { injected, useAccount, useConnect, useDisconnect } from 'wagmi';
+import {
+  injected,
+  useAccount,
+  useConnect,
+  useDisconnect,
+  useSwitchChain,
+} from 'wagmi';
 import { usePathname, useRouter } from 'next/navigation';
+import { base } from 'viem/chains';
 
 const truncateAddress = (address: string, chars = 6): string => {
   if (!address) return '';
@@ -12,10 +26,13 @@ const truncateAddress = (address: string, chars = 6): string => {
 };
 
 const ConnectWalletButton = () => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { connect } = useConnect();
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId } = useAccount();
   const { disconnect } = useDisconnect();
+  const { switchChain } = useSwitchChain();
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isAlert, setIsAlert] = useState(false);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -25,6 +42,16 @@ const ConnectWalletButton = () => {
       router.push('/');
     }
   }, [isConnected, pathname]);
+
+  useEffect(() => {
+    if (chainId !== base.id) {
+      switchChain({ chainId: base.id });
+      setIsAlert(true);
+      setTimeout(() => {
+        setIsAlert(false);
+      }, 5000);
+    }
+  }, [chainId]);
 
   const open = Boolean(anchorEl);
 
@@ -87,6 +114,16 @@ const ConnectWalletButton = () => {
           </MenuItem>
         ) : null}
       </Menu>
+      {isAlert ? (
+        <Portal container={() => document.querySelector('body')}>
+          <Alert
+            sx={{ position: 'absolute', bottom: 20, right: 40 }}
+            severity="warning"
+          >
+            The network in your wallet has been changed to Base.
+          </Alert>
+        </Portal>
+      ) : null}
     </FormControl>
   );
 };
